@@ -5,7 +5,8 @@ import { useFrame } from '@react-three/fiber';
 import { MahjongTile } from '../types/mahjong';
 
 interface Simple3DSceneProps {
-  tiles: MahjongTile[];
+  hand: MahjongTile[];
+  discardPile: MahjongTile[];
 }
 
 function AnimatedTile({ tile, position, onClick, isSelected }: {
@@ -55,7 +56,7 @@ function AnimatedTile({ tile, position, onClick, isSelected }: {
   );
 }
 
-export function Simple3DScene({ tiles }: Simple3DSceneProps) {
+export function Simple3DScene({ hand, discardPile }: Simple3DSceneProps) {
   const [selectedTile, setSelectedTile] = useState<string | null>(null);
 
   const handleTileClick = (tileId: string) => {
@@ -65,7 +66,7 @@ export function Simple3DScene({ tiles }: Simple3DSceneProps) {
   return (
     <div className="w-full h-96 bg-gradient-to-b from-blue-900 to-blue-700 rounded-lg overflow-hidden">
       <Canvas
-        camera={{ position: [0, 3, 8], fov: 50 }}
+        camera={{ position: [0, 5, 10], fov: 50 }}
         style={{ width: '100%', height: '100%' }}
       >
         <ambientLight intensity={0.6} />
@@ -74,34 +75,38 @@ export function Simple3DScene({ tiles }: Simple3DSceneProps) {
         
         {/* 簡單的桌面 */}
         <mesh position={[0, -0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[10, 6]} />
+          <planeGeometry args={[15, 10]} />
           <meshStandardMaterial color="#1f2937" />
         </mesh>
         
         {/* 手牌 */}
-        <group position={[0, 0, 2]}>
-          {tiles.slice(0, 13).map((tile, index) => (
+        <group position={[0, 0, 3]}>
+          {hand.map((tile, index) => (
             <AnimatedTile
               key={tile.id}
               tile={tile}
-              position={[(index - 6) * 0.9, 0, 0]}
+              position={[(index - (hand.length - 1) / 2) * 0.9, 0, 0]}
               onClick={() => handleTileClick(tile.id)}
               isSelected={selectedTile === tile.id}
             />
           ))}
         </group>
         
-        {/* 牌河 */}
+        {/* 牌河 (6列佈局) */}
         <group position={[0, 0, -1]}>
-          {tiles.slice(13, 19).map((tile, index) => (
-            <AnimatedTile
-              key={tile.id}
-              tile={tile}
-              position={[(index - 2.5) * 0.9, 0, 0]}
-              onClick={() => {}}
-              isSelected={false}
-            />
-          ))}
+          {discardPile.map((tile, index) => {
+            const row = Math.floor(index / 6);
+            const col = index % 6;
+            return (
+              <AnimatedTile
+                key={tile.id}
+                tile={tile}
+                position={[(col - 2.5) * 0.9, 0, -row * 1.3]}
+                onClick={() => {}}
+                isSelected={false}
+              />
+            );
+          })}
         </group>
       </Canvas>
       
